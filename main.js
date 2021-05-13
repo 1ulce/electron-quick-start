@@ -1,16 +1,29 @@
 // Modules to control application life and create native browser window
-const {app, BrowserWindow, dialog, Notification} = require('electron')
+const {app, BrowserWindow, dialog, Notification, globalShortcut} = require('electron')
 const path = require('path')
+const is_mac = process.platform==='darwin'
+
+if(is_mac) {     // macOSの時のみこの設定を反映する
+  app.dock.hide()          // Dockを非表示にする
+}
 
 function createWindow () {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
+    transparent: true,    // ウィンドウの背景を透過
+    frame: false,     // 枠の無いウィンドウ
+    resizable: false,  // ウィンドウのリサイズを禁止
+    hasShadow: false,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js')
+      preload: path.join(__dirname, 'preload.js'),
+      devTools: false
     }
   })
+  mainWindow.setAlwaysOnTop(true, "screen-saver")
+  mainWindow.setVisibleOnAllWorkspaces(true)
+  mainWindow.setIgnoreMouseEvents(true)
 
   // and load the index.html of the app.
   mainWindow.loadFile('index.html')
@@ -47,6 +60,17 @@ app.whenReady().then(() => {
       createWindow()
 
     }
+  })
+})
+
+app.on('ready', function() {
+  globalShortcut.register('CommandOrControl+Alt+K', function() {
+    dialog.showMessageBox({
+      type: 'info',
+      message: 'Success!',
+      detail: 'You pressed the registered global shortcut keybinding.',
+      buttons: ['OK']
+    })
   })
 })
 
