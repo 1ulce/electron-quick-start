@@ -1,40 +1,57 @@
-// Modules to control application life and create native browser window
-const {app, BrowserWindow, dialog, Notification, globalShortcut} = require('electron')
+const {Tray, app, Menu, BrowserWindow, dialog, Notification, globalShortcut, nativeTheme} = require('electron')
 const path = require('path')
-const is_mac = process.platform==='darwin'
+const is_mac = process.platform === 'darwin'
 
 if(is_mac) {     // macOSの時のみこの設定を反映する
   app.dock.hide()          // Dockを非表示にする
 }
 
 function createWindow () {
-  // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
-    transparent: true,    // ウィンドウの背景を透過
-    frame: false,     // 枠の無いウィンドウ
+    //transparent: true,    // ウィンドウの背景を透過
+    //frame: false,     // 枠の無いウィンドウ
     resizable: false,  // ウィンドウのリサイズを禁止
     hasShadow: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
-      devTools: false
+      //devTools: false
     }
   })
-  mainWindow.setAlwaysOnTop(true, "screen-saver")
+  //mainWindow.setAlwaysOnTop(true, "screen-saver")
   mainWindow.setVisibleOnAllWorkspaces(true)
-  mainWindow.setIgnoreMouseEvents(true)
+  //mainWindow.setIgnoreMouseEvents(true)
 
   // and load the index.html of the app.
   mainWindow.loadFile('index.html')
-
-  // Open the DevTools.
-  // mainWindow.webContents.openDevTools()
 }
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
+const createMainMenu = () => {
+  // ここに書くとメニューを変更できる
+}
+
+const createTrayIcon = () => {
+  tray = null;
+  let imgFilePath;
+  if (process.platform === 'win32') {
+    imgFilePath = __dirname + '/images/tray-icon/white/100.ico';
+  }
+  else{
+    imgFilePath = __dirname + '/images/tray-icon/black/100.png';
+    if ( nativeTheme.shouldUseDarkColors === true ){
+      isDarkTheme = true;
+      imgFilePath = __dirname + '/images/tray-icon/white/100.png';
+    }
+  }
+  const contextMenu = Menu.buildFromTemplate([
+    { label: 'こんにちは', role: 'here' },
+    { label: '終了', role: 'quit' }
+  ]);
+  tray = new Tray(imgFilePath);
+  tray.setToolTip(app.name);
+  tray.setContextMenu(contextMenu)
+}
 
 function showNotification () {
   const notification = {
@@ -72,6 +89,8 @@ app.on('ready', function() {
       buttons: ['OK']
     })
   })
+  createMainMenu();
+  createTrayIcon();
 })
 
 // Quit when all windows are closed, except on macOS. There, it's common
